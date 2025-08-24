@@ -75,8 +75,7 @@ This is a passion project dedicated to my friends, and maybe one day my home (gr
 
 ## Scope
 
-### Within MVP Scope: 
-- 
 ### Future Features/Considerations: 
 - Prevent people from gaming the system
 - Host override capabilities on approvals, capping attendance, capping invites
+- Lock RSVPs at a chosen time before party start
