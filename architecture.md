@@ -159,8 +159,6 @@
 - Pros: Transactions, constraints, easy uniqueness (no duplicate names per party), recursive CTEs if you ever need on‑the‑fly distances, solid indexing. Scales from hobby → prod without re-architecture.
 - Tooling: Use the native driver (pg in Node, psycopg in Python) and raw SQL migrations (literally .sql files). No ORM required.
 
-# FRONTEND:
-
 ## Build Sequence (Milestone by Milestone)
 
 ### Bootstrap Service
@@ -199,3 +197,21 @@
 - **Manual**: Use `curl`/Postman flows:
   - Create → Join → YES/MAYBE/NO → Unlock → Lock.
 - **Scriptable**: Add a couple of end-to-end test cases.
+
+# FRONTEND 
+
+## Stack
+
+Core: React + Vite + TypeScript
+
+Styling: CSS Modules (built-in, no Tailwind/MUI)
+
+Data: plain fetch or lightweight wrapper, no TanStack Query unless needed
+
+Forms/validation: native HTML5 validation or small helpers (add Zod/RHF only if complexity grows)
+
+Auth: cookie/token handled manually in fetch calls
+
+Testing: Vitest + React Testing Library (optional)
+
+Deploy: any static host (Vercel, Netlify, GitHub Pages, etc.)

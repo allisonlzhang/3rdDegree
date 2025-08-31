@@ -1,0 +1,85 @@
+/* 3rdDegree design tokens */
+:root {
+  --bg: #f5ead6;          /* cream page */
+  --bg-contrast: #3e2a22; /* dark brown header/footer */
+  --fg: #2e241f;          /* text */
+  --fg-on-dark: #efe7db;  /* text on dark */
+  --primary: #7a9e7e;     /* sage */
+  --accent-briar: #5a3e36;
+  --accent-white: #ffffff;
+
+  --section-bg: transparent;
+  --section-fg: var(--fg);
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1411;          /* dark page */
+    --bg-contrast: #271a14; /* header/footer */
+    --fg: #efe7db;          /* cream text */
+    --fg-on-dark: #efe7db;
+    --primary: #8ab893;     /* lighter sage */
+    --accent-briar: #d6c2a9;
+    --accent-white: #efe7db;
+
+    --section-bg: transparent;
+    --section-fg: var(--fg);
+  }
+}
+
+/* base */
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--fg);
+  background: var(--bg);
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+/* sections instead of bordered cards */
+.section {
+  background: var(--section-bg);
+  color: var(--section-fg);
+  padding: var(--space-6);
+}
+
+/* buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: calc(var(--space-2) + 2px) var(--space-4);
+  border-radius: var(--radius);
+  border: none;
+  background: var(--primary);
+  color: var(--accent-white);
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }

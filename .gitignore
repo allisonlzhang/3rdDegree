@@ -1,0 +1,19 @@
+# Python venv
+.venv/
+
+# Environment files
+.env
+backend/.env
+frontend/.env
+*.env
+
+# Bytecode
+__pycache__/
+*.pyc
+
+# Node modules
+frontend/node_modules/
+
+# Build / cache
+*.sqlite
+*.log

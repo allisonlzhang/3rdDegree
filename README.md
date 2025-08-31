@@ -79,3 +79,15 @@ This is a passion project dedicated to my friends, and maybe one day my home (gr
 - Prevent people from gaming the system
 - Host override capabilities on approvals, capping attendance, capping invites
 - Lock RSVPs at a chosen time before party start
+
+
+Coding notes: 
+- to make sql calls: 
+    - start psql: 
+        echo 'export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"' >> ~/.zshrc
+        source ~/.zshrc
+    - psql "postgresql://postgres:YOUR_PASSWORD@localhost:5432/partydb"
+- to start backend server :
+    uvicorn backend.app.main:app --reload --port 8000
+- to start frontend server: 
+    cd frontend: npm run dev
