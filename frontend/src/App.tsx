@@ -26,7 +26,6 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="tokens" element={<Tokens />} />   
           <Route path="login" element={<Login />} /> 
           <Route path="*" element={<NotFound />} />
           <Route path="party/:partyId/rsvp" element={<Rsvp />} />
@@ -38,6 +37,10 @@ export default function App() {
           <Route path="party/:partyId/rsvp/me" element={<GuestRsvp />} />
           <Route path="party/:partyId/info" element={<PartyInfo />} />
 
+          {import.meta.env.MODE !== "production" && (
+            <Route path="tokens" element={<Tokens />} />
+          )} 
+          
           {/* protected */}
           <Route
             path="host"

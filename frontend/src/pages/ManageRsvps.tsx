@@ -1,28 +1,32 @@
 // src/pages/ManageRsvps.tsx
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useParams, Link } from "react-router-dom";
+import { api } from "../lib/api";
 
-type Rsvp = {
-  id: string;
-  name: string;
-  contact: string;
-  answer: "yes" | "no" | "maybe";
-  note?: string;
-};
-
-const MOCK: Rsvp[] = [
-  { id: "r1", name: "Alex Kim", contact: "+1 555 111 2222", answer: "yes", note: "Bringing snacks" },
-  { id: "r2", name: "Sam Lee", contact: "sam@example.com", answer: "maybe" },
-  { id: "r3", name: "Priya N", contact: "+1 555 333 4444", answer: "no" },
-];
+type Rsvp = { id: string; name: string; contact: string; answer: "yes"|"no"|"maybe"; note?: string };
 
 export default function ManageRsvps() {
   const { partyId } = useParams();
+  const [all, setAll] = useState<Rsvp[] | null>(null);
   const [filter, setFilter] = useState<"all" | "yes" | "no" | "maybe">("all");
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!partyId) return;
+    (async () => {
+      try {
+        const rows = await api<Rsvp[]>(`/parties/${partyId}/rsvps`);
+        setAll(rows);
+      } catch (e: any) {
+        setErr(e.message || "Failed to load RSVPs");
+      }
+    })();
+  }, [partyId]);
+
   const list = useMemo(
-    () => (filter === "all" ? MOCK : MOCK.filter((r) => r.answer === filter)),
-    [filter]
+    () => !all ? [] : (filter === "all" ? all : all.filter(r => r.answer === filter)),
+    [all, filter]
   );
 
   function onFilter(e: ChangeEvent<HTMLSelectElement>) {
@@ -30,14 +34,16 @@ export default function ManageRsvps() {
   }
 
   function exportCsv() {
-    const rows = [["name", "contact", "answer", "note"], ...list.map(r => [r.name, r.contact, r.answer, r.note ?? ""])];
-    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const rows = [["name","contact","answer","note"], ...list.map(r => [r.name, r.contact, r.answer, r.note ?? ""])];
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `party-${partyId}-rsvps.csv`; a.click();
+    const a = document.createElement("a"); a.href = url; a.download = `party-${partyId}-rsvps.csv`; a.click();
     URL.revokeObjectURL(url);
   }
+
+  if (err) return <section className="section" style={{ maxWidth: 900, margin: "4rem auto" }}><p>{err}</p></section>;
+  if (!all) return null;
 
   return (
     <section className="section" style={{ maxWidth: 900, margin: "4rem auto" }}>

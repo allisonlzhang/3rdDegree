@@ -18,7 +18,9 @@ export default function Layout() {
           <nav style={{ display: "flex", gap: "1rem", marginLeft: "auto" }}>
             <Link to="/" style={{ color: "var(--accent-white)" }}>Home</Link>
             <Link to="/about" style={{ color: "var(--accent-white)" }}>About</Link>
-            <Link to="/tokens" style={{ color: "var(--accent-white)" }}>Tokens</Link>
+            {import.meta.env.MODE !== "production" && (
+                <Link to="/tokens" style={{ color: "var(--accent-white)" }}>Tokens</Link>
+            )}
             <Link to="/login" style={{ color: "var(--accent-white)" }}>Login</Link>
             <button
               onClick={handleLogout}
