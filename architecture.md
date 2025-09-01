@@ -215,3 +215,11 @@ Auth: cookie/token handled manually in fetch calls
 Testing: Vitest + React Testing Library (optional)
 
 Deploy: any static host (Vercel, Netlify, GitHub Pages, etc.)
+
+# DEPLOY
+
+Site host: GitHub Pages
+Flask host: Render
+- easy Git deploy; background workers & cron later if needed.
+Postgres manager: Neon
+- serverless, branches for previews

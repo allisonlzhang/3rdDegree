@@ -13,3 +13,8 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   }
   return (await res.json()) as T;
 }
+
+export async function logout() {
+    await api<{ ok: boolean }>("/auth/logout", { method: "POST" });
+  }
+  

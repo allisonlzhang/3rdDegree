@@ -87,7 +87,10 @@ Coding notes:
         echo 'export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"' >> ~/.zshrc
         source ~/.zshrc
     - psql "postgresql://postgres:YOUR_PASSWORD@localhost:5432/partydb"
-- to start backend server :
-    uvicorn backend.app.main:app --reload --port 8000
+- to start backend server:
+    - in dev: 
+        uvicorn backend.app.main:app --reload --port 8000
+    - in prod: 
+        gunicorn backend.app.main:app -k uvicorn.workers.UvicornWorker
 - to start frontend server: 
     cd frontend: npm run dev

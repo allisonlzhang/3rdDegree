@@ -15,6 +15,16 @@ export default function Home() {
             RSVP Demo
           </Link>
         </p>
+        <p>
+          Try an Invite landing page:{" "}
+          <Link to="/invite/123?t=demo-token" className="btn">
+            Invite Demo
+          </Link>
+        </p>
+        <p>
+          Manage an RSVP:&nbsp;
+          <Link to="/rsvp/abc123?t=demo-token" className="btn">Update RSVP Demo</Link>
+        </p>
       </div>
     </section>
   );

@@ -41,14 +41,9 @@ export default function Rsvp() {
   }
 
   if (done) {
-    return (
-      <section className="card" style={{ maxWidth: 520, margin: "4rem auto", textAlign: "center" }}>
-        <h2 style={{ marginTop: 0 }}>RSVP received 🎉</h2>
-        <p>Thanks for responding.</p>
-        <button className="btn" onClick={() => nav("/")}>Back to Home</button>
-      </section>
-    );
-  }
+    nav(`/party/${partyId}/rsvp/success`);
+    return null;
+  }  
 
   return (
     <section className="card" style={{ maxWidth: 520, margin: "4rem auto" }}>
