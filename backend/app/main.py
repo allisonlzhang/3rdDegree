@@ -67,14 +67,20 @@ def health():
 
 @app.get("/dbcheck")
 def dbcheck():
-    # on-demand open + ping DB
-    if not pool.is_open:
-        pool.open(wait=True, timeout=30)
-    with pool.connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT 1")
-            val = cur.fetchone()[0]
-            return {"ok": val == 1}
+    try:
+        if not pool.is_open:
+            pool.open(wait=True, timeout=30)  # lazy-open
+        with pool.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                return {"ok": cur.fetchone()[0] == 1}
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        # also logs server-side
+        logger.exception("DBCHECK failed: %s", e)
+        # return the message so you can see it from curl
+        return {"ok": False, "error": str(e), "trace": tb}
 
 # Optional: simple error logging
 @app.middleware("http")
