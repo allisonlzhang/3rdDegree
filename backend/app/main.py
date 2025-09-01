@@ -41,21 +41,19 @@ app = FastAPI(title="Party API", lifespan=lifespan)
 # Compression
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 
-# CORS (env-driven; comma-separated)
-CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
-logger.info("CORS_ORIGINS=%s", CORS_ORIGINS)
-if CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=CORS_ORIGINS,
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["authorization", "content-type", "x-requested-with"],
-        max_age=86400,
-    )
-if not CORS_ORIGINS:
-    # TEMP: make preview work even if env is missing
-    CORS_ORIGINS = ["http://localhost:4173"]
+origins = [
+    "http://localhost:5173",       # Vite dev server
+    "http://localhost:4173",       # Vite preview (npm run preview)
+    "https://allisonlzhang.github.io",  # <-- your GitHub Pages origin (no /3rdDegree path!)
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,     # needed if you send cookies
+    allow_methods=["*"],        # allow all methods (GET/POST/etc)
+    allow_headers=["*"],        # allow all headers
+)
 
 # -------- Basic endpoints --------
 @app.get("/")
