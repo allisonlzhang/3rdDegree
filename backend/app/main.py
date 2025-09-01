@@ -43,6 +43,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 # CORS (env-driven; comma-separated)
 CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+logger.info("CORS_ORIGINS=%s", CORS_ORIGINS)
 if CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
@@ -52,6 +53,9 @@ if CORS_ORIGINS:
         allow_headers=["authorization", "content-type", "x-requested-with"],
         max_age=86400,
     )
+if not CORS_ORIGINS:
+    # TEMP: make preview work even if env is missing
+    CORS_ORIGINS = ["http://localhost:4173"]
 
 # -------- Basic endpoints --------
 @app.get("/")
