@@ -65,6 +65,10 @@ if CORS_ORIGINS:
 def health():
     return {"ok": True}
 
+@app.get("/")
+def root():
+    return {"ok": True, "service": "Party API", "endpoints": ["/health", "/docs"]}
+
 
 # Simple error logging (keeps JSON body for clients)
 @app.middleware("http")
