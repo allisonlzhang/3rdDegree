@@ -10,8 +10,8 @@ if not DATABASE_URL:
 # Lazy pool: don't open on import/startup
 pool = ConnectionPool(
     DATABASE_URL,
-    min_size=0,            # don't pre-open
+    min_size=0,          # don't pre-open
     max_size=5,
-    open=False,            # <-- important
+    open=False,          # open on first use
     kwargs={"connect_timeout": 20, "sslmode": "require"},
 )

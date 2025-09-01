@@ -68,19 +68,18 @@ def health():
 @app.get("/dbcheck")
 def dbcheck():
     try:
-        if not pool.is_open:
-            pool.open(wait=True, timeout=30)  # lazy-open
+        # open the pool on-demand (safe if already open)
+        pool.open(wait=True, timeout=30)
+
         with pool.connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT 1")
                 return {"ok": cur.fetchone()[0] == 1}
     except Exception as e:
-        import traceback
-        tb = traceback.format_exc()
-        # also logs server-side
-        logger.exception("DBCHECK failed: %s", e)
-        # return the message so you can see it from curl
-        return {"ok": False, "error": str(e), "trace": tb}
+        import traceback, logging
+        logging.getLogger("party-api").exception("DBCHECK failed")
+        return {"ok": False, "error": str(e), "trace": traceback.format_exc()}
+
 
 # Optional: simple error logging
 @app.middleware("http")
