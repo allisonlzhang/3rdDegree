@@ -35,7 +35,7 @@ export default function App() {
           <Route path="about" element={<About />} />
           <Route path="privacy" element={<Privacy />} />
           <Route path="invite/:partyId" element={<InviteLanding />} />
-          <Route path="rsvp/:rsvpId" element={<GuestRsvp />} />
+          <Route path="party/:partyId/rsvp/me" element={<GuestRsvp />} />
           <Route path="party/:partyId/info" element={<PartyInfo />} />
 
           {/* protected */}
