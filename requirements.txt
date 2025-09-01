@@ -1,6 +1,7 @@
 fastapi==0.111.0
 uvicorn[standard]==0.30.0
 psycopg[binary,pool]==3.1.19
+SQLAlchemy==2.0.23
 
 # validation + security
 pydantic==2.7.1
