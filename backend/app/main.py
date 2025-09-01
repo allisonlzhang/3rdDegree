@@ -16,7 +16,7 @@ from .routes.auth import router as auth_router, me_router
 from .routes.snapshot import router as snapshot_router
 from .routes.host_auth import router as host_auth_router
 
-# -------- Logging (prod defaults) --------
+# -------- Logging --------
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     level=LOG_LEVEL,
@@ -24,32 +24,25 @@ logging.basicConfig(
 )
 logger = logging.getLogger("party-api")
 
-
-# -------- Lifespan: open/close DB pool --------
+# -------- Lifespan (no DB ping to avoid boot failures on cold DB) --------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    yield
+    # close pool on shutdown
     try:
-        with pool.connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT 1")
-        logger.info("DB connection pool ready")
-        yield
-    finally:
         pool.close()
         logger.info("DB connection pool closed")
-
+    except Exception:
+        pass
 
 # -------- App --------
 app = FastAPI(title="Party API", lifespan=lifespan)
 
-# Gzip large JSON (safe default)
+# Compression
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 
-# Strict CORS (env-driven). Example:
-# CORS_ORIGINS="https://your-username.github.io,https://example.com"
-CORS_ORIGINS = [
-    o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()
-]
+# CORS (env-driven; comma-separated)
+CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
 if CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
@@ -60,28 +53,37 @@ if CORS_ORIGINS:
         max_age=86400,
     )
 
-# Health (no DB query—cheap liveness)
-@app.get("/health")
-def health():
-    return {"ok": True}
-
+# -------- Basic endpoints --------
 @app.get("/")
 def root():
-    return {"ok": True, "service": "Party API", "endpoints": ["/health", "/docs"]}
+    return {"ok": True, "service": "Party API", "endpoints": ["/health", "/dbcheck", "/docs"]}
 
+@app.get("/health")
+def health():
+    # liveness (no DB)
+    return {"ok": True}
 
-# Simple error logging (keeps JSON body for clients)
+@app.get("/dbcheck")
+def dbcheck():
+    # on-demand open + ping DB
+    if not pool.is_open:
+        pool.open(wait=True, timeout=30)
+    with pool.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1")
+            val = cur.fetchone()[0]
+            return {"ok": val == 1}
+
+# Optional: simple error logging
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     try:
-        response = await call_next(request)
-        return response
-    except Exception as e:
+        return await call_next(request)
+    except Exception:
         logger.exception("Unhandled error: %s %s", request.method, request.url.path)
         raise
 
-
-# Routers
+# -------- Routers --------
 app.include_router(parties_router)
 app.include_router(join_router)
 app.include_router(rsvp_router)
