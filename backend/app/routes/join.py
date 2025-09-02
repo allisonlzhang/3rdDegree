@@ -9,6 +9,12 @@ router = APIRouter(prefix="/join", tags=["join"])
 @router.post("/{party_id}/{token}", response_model=JoinResponse)
 def join_party(party_id: int, token: str, body: JoinRequest):
     try:
+        pool.open(wait=True, timeout=30)
+    except Exception:
+        # if it's already open, this is harmless; continue
+        pass
+
+    try:
         name = (body.name or "").strip()
         if not name:
             raise HTTPException(400, "name required")
