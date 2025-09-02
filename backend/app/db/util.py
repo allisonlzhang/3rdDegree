@@ -3,11 +3,11 @@ import psycopg
 from .connection import pool
 
 def with_conn(fn):
+    """Run `fn(conn, cur)` with a pooled connection; retry once if the socket is stale."""
     try:
         with pool.connection() as conn, conn.cursor() as cur:
             return fn(conn, cur)
     except psycopg.Error:
-        # stale/BAD socket -> reopen pool and retry once
         try:
             pool.close()
         except Exception:
