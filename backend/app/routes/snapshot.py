@@ -1,68 +1,77 @@
+# backend/app/routes/snapshot.py
+
 from fastapi import APIRouter, HTTPException
 from datetime import datetime, timezone
-from ..db.connection import pool
-from ..models.party_models import SnapshotResponse
-from psycopg.types.json import Json
+
+from ..db.util import run_tx
 
 router = APIRouter(prefix="/parties", tags=["snapshot"])
 
-@router.get("/{party_id}/snapshot", response_model=SnapshotResponse)
+
+@router.get("/{party_id}/snapshot")
 def get_snapshot(party_id: int):
+    """
+    After the party has started (party.started = true OR now >= starts_at),
+    return a snapshot of:
+      - roster: [member_id, name, role, distance, rsvp_status, approved]
+      - edges:  [parent_id, child_id]
+      - generated_at (UTC ISO8601)
+    Before start, respond 404 (not found).
+    """
     now = datetime.now(timezone.utc)
-    with pool.connection() as conn:
-        with conn.cursor() as cur:
-            # load party (lock if we might freeze)
-            cur.execute("SELECT starts_at, started, snapshot FROM party WHERE id=%s", (party_id,))
-            row = cur.fetchone()
-            if not row:
-                raise HTTPException(404, "party not found")
-            starts_at, started, snapshot = row
 
-            if not started and now < starts_at:
-                return {"started": False}
+    def _tx(conn, cur):
+        # 1) start/lock check
+        cur.execute("SELECT starts_at, started FROM party WHERE id=%s", (party_id,))
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(404, "party not found")
+        starts_at, started = row
+        has_started = bool(started) or (now >= starts_at)
+        if not has_started:
+            # pre-start: hide roster/edges
+            raise HTTPException(404, "not found")
 
-            # if already frozen, serve it
-            if started and snapshot:
-                return {
-                    "started": True,
-                    "roster": snapshot.get("roster"),
-                    "edges": snapshot.get("edges"),
-                    "generated_at": snapshot.get("generated_at"),
-                }
+        # 2) roster
+        cur.execute(
+            """
+            SELECT
+                m.id   AS member_id,
+                m.name,
+                m.role,
+                m.distance,
+                COALESCE(r.status, 'pending')  AS rsvp_status,
+                COALESCE(r.approved, FALSE)    AS approved
+            FROM member m
+            LEFT JOIN rsvp r
+              ON r.party_id = m.party_id
+             AND r.member_id = m.id
+            WHERE m.party_id = %s
+            ORDER BY m.id
+            """,
+            (party_id,),
+        )
+        roster_cols = [d.name for d in cur.description]
+        roster = [dict(zip(roster_cols, rec)) for rec in cur.fetchall()]
 
-            # lazy-freeze: lock party row, recompute, save
-            cur.execute("SELECT id FROM party WHERE id=%s FOR UPDATE", (party_id,))
+        # 3) edges
+        cur.execute(
+            """
+            SELECT parent_id, id AS child_id
+            FROM member
+            WHERE party_id=%s AND parent_id IS NOT NULL
+            ORDER BY id
+            """,
+            (party_id,),
+        )
+        edge_cols = [d.name for d in cur.description]
+        edges = [dict(zip(edge_cols, rec)) for rec in cur.fetchall()]
 
-            # recompute roster
-            cur.execute("""
-                SELECT m.id AS member_id, m.name, m.role, m.distance,
-                       r.status AS rsvp_status, r.approved
-                FROM member m
-                JOIN rsvp r ON r.member_id=m.id AND r.party_id=m.party_id
-                WHERE m.party_id=%s
-                ORDER BY m.distance, m.role, m.name
-            """, (party_id,))
-            mcols = [d.name for d in cur.description]
-            roster = [dict(zip(mcols, r)) for r in cur.fetchall()]
+        return {
+            "started": True,
+            "roster": roster,
+            "edges": edges,
+            "generated_at": now.isoformat(),
+        }
 
-            # edges
-            cur.execute("""
-                SELECT parent_id, id AS child_id
-                FROM member
-                WHERE party_id=%s AND parent_id IS NOT NULL
-            """, (party_id,))
-            edges = [{"parent_id": p, "child_id": c} for (p, c) in cur.fetchall()]
-
-            snap = {
-                "roster": roster,
-                "edges": edges,
-                "generated_at": datetime.now(timezone.utc).isoformat()
-            }
-
-            cur.execute(
-                "UPDATE party SET snapshot=%s, started=TRUE WHERE id=%s",
-                (Json(snap), party_id),
-            )   
-
-
-            return {"started": True, **snap}
+    return run_tx(_tx)

@@ -1,17 +1,21 @@
-# backend/app/db/util.py
-import psycopg
-from .connection import pool
+import os, psycopg
 
-def with_conn(fn):
-    """Run `fn(conn, cur)` with a pooled connection; retry once if the socket is stale."""
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+def run_tx(fn):
+    """
+    Open a short-lived connection per call with tight timeouts.
+    Safe for Neon pooler endpoints.
+    """
+    conn = psycopg.connect(
+        DATABASE_URL,
+        connect_timeout=10,
+        options="-c statement_timeout=5000",
+        sslmode="require",
+        autocommit=True,
+    )
     try:
-        with pool.connection() as conn, conn.cursor() as cur:
+        with conn.cursor() as cur:
             return fn(conn, cur)
-    except psycopg.Error:
-        try:
-            pool.close()
-        except Exception:
-            pass
-        pool.open(wait=True, timeout=30)
-        with pool.connection() as conn, conn.cursor() as cur:
-            return fn(conn, cur)
+    finally:
+        conn.close()
