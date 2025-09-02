@@ -9,6 +9,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi import HTTPException
 
 from .db.connection import pool
+from anyio import EndOfStream
 
 # Util helpers used by /host/login
 from .util.phone import normalize_phone
@@ -230,9 +231,12 @@ def host_login_auto(payload: dict = Body(...)):
 
 # Optional: simple error logging
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
+async def log_requests(request, call_next):
     try:
         return await call_next(request)
+    except EndOfStream:
+        # client aborted; ignore
+        pass
     except Exception:
         logger.exception("Unhandled error: %s %s", request.method, request.url.path)
         raise

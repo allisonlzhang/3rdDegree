@@ -7,11 +7,18 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL not set")
 
-# Lazy pool: don't open on import/startup
 pool = ConnectionPool(
     DATABASE_URL,
-    min_size=1,   # pre-open a connection
+    min_size=1,            # keep 1 warm
     max_size=5,
-    open=True,    # open at import
-    kwargs={"connect_timeout": 20, "sslmode": "require"},
+    open=True,             # open at import
+    kwargs={
+        "sslmode": "require",
+        "connect_timeout": 10,
+        # TCP keepalives so Neon/Render don’t silently kill us
+        "keepalives": 1,
+        "keepalives_idle": 30,
+        "keepalives_interval": 10,
+        "keepalives_count": 3,
+    },
 )
