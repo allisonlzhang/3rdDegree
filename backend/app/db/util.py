@@ -10,7 +10,6 @@ def run_tx(fn):
     conn = psycopg.connect(
         DATABASE_URL,
         connect_timeout=10,
-        options="-c statement_timeout=5000",
         sslmode="require",
         autocommit=True,
     )
