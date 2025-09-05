@@ -29,10 +29,14 @@ export default function Login() {
         method: "POST",
         body: JSON.stringify(payload),
       });
-      if (res.ok && res.member?.id && res.member?.party_id) {
-        // persist for subsequent /me calls
+      // after the POST /host/login
+      if (res.ok && res.member?.id) {                 // <- only require id
         localStorage.setItem("member_id", res.member.id);
-        localStorage.setItem("party_id", res.member.party_id);
+        if (res.member.party_id) {
+          localStorage.setItem("party_id", res.member.party_id);
+        } else {
+          localStorage.removeItem("party_id");        // ensure it's empty for new hosts
+        }
         nav("/host");
       } else {
         setErr(res.message || "Login failed");
