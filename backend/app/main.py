@@ -13,6 +13,7 @@ from .routes.rsvp import router as rsvp_router
 from .routes.auth import router as auth_router, me_router
 from .routes.snapshot import router as snapshot_router
 from .routes.host_auth import router as host_auth_router
+from .routes.aliases import router as aliases_router
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
@@ -64,3 +65,4 @@ app.include_router(auth_router)
 app.include_router(me_router)
 app.include_router(snapshot_router)
 app.include_router(host_auth_router)
+app.include_router(aliases_router)

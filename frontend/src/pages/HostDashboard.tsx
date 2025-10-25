@@ -12,7 +12,12 @@ export default function HostDashboard() {
   useEffect(() => {
     (async () => {
       try {
-        const list = await api<PartyListItem[]>("/host/parties");
+        const memberId = localStorage.getItem("member_id");
+        if (!memberId) {
+          setErr("Not logged in");
+          return;
+        }
+        const list = await api<PartyListItem[]>(`/host/parties?member_id=${encodeURIComponent(memberId)}`);
         setItems(list);
       } catch (e: any) {
         setErr(e.message || "Failed to load parties");
