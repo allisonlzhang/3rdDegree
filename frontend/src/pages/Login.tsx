@@ -51,12 +51,18 @@ export default function Login() {
       if (partyId) localStorage.setItem("party_id", partyId);
       else localStorage.removeItem("party_id");
 
+      // Debug logging
+      console.log("Login response:", { hostName, partyTitle, memberId, partyId });
+      
       // Check if this is a first-time host (default party title indicates new host)
       const isFirstTime = partyTitle.includes("'s Party") && hostName === "Host";
+      console.log("Is first time host:", isFirstTime);
       
       if (isFirstTime) {
+        console.log("Redirecting to setup page");
         nav("/host/setup");
       } else {
+        console.log("Redirecting to dashboard");
         nav("/host");
       }
     } catch (e: any) {

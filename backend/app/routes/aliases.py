@@ -48,8 +48,14 @@ def host_parties(member_id: int = Query(...)):
     return run_tx(_tx)
 
 @router.post("/update-name")
-def update_host_name(member_id: int, name: str):
+def update_host_name(payload: dict):
     """Update host's name"""
+    member_id = payload.get("member_id")
+    name = payload.get("name")
+    
+    if not member_id or not name:
+        raise HTTPException(400, "member_id and name are required")
+    
     def _tx(conn, cur):
         # Update the member's name
         cur.execute(
