@@ -36,20 +36,14 @@ export default function App() {
           <Route path="invite/:partyId" element={<InviteLanding />} />
           <Route path="party/:partyId/rsvp/me" element={<GuestRsvp />} />
           <Route path="party/:partyId/info" element={<PartyInfo />} />
+          <Route path="host" element={<HostDashboard/>} />
+
 
           {import.meta.env.MODE !== "production" && (
             <Route path="tokens" element={<Tokens />} />
           )} 
-          
+
           {/* protected */}
-          <Route
-            path="host"
-            element={
-              <RequireAuth>
-                <HostDashboard />
-              </RequireAuth>
-            }
-          />
           <Route
             path="host/parties/new"
             element={

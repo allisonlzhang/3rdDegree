@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from ..db.util import run_tx
 from ..models.auth_models import LoginRequest, LoginResponse
 from ..models.member_models import MeResponse
@@ -48,7 +48,7 @@ def login_by_name(party_id: int, body: LoginRequest):
     return run_tx(_tx)
 
 @me_router.get("/{party_id}/me", response_model=MeResponse)
-def get_me(party_id: int, member_id: int):
+def get_me(party_id: int, member_id: int = Query(...)):
     def _tx(conn, cur):
         cur.execute(
             "SELECT id, party_id, name, role, parent_id, distance, has_invite_link FROM member WHERE party_id=%s AND id=%s",
