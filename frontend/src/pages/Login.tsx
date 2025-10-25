@@ -6,7 +6,16 @@ import { api } from "../lib/api";
 type LoginResp = {
   ok?: boolean;
   message?: string;
-  member?: { id?: string; party_id?: string | null };
+  member?: { 
+    id?: string; 
+    party_id?: string | null;
+    name?: string;
+  };
+  party?: {
+    title?: string;
+    location?: string;
+    starts_at?: string;
+  };
   _text?: string; // fallback if server replied text/plain
 };
 
