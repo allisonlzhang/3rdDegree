@@ -2,9 +2,9 @@
 from fastapi import APIRouter, HTTPException, Query
 from ..db.util import run_tx
 
-router = APIRouter(tags=["aliases"])
+router = APIRouter(prefix="/host", tags=["aliases"])
 
-@router.get("/host/me")
+@router.get("/me")
 def host_me(member_id: int | None = None, party_id: int | None = None):
     if not member_id or not party_id:
         raise HTTPException(400, "member_id and party_id required")
@@ -20,7 +20,7 @@ def host_me(member_id: int | None = None, party_id: int | None = None):
     
     return run_tx(_tx)
 
-@router.get("/host/parties")
+@router.get("/parties")
 def host_parties(member_id: int = Query(...)):
     """Get all parties for a host member"""
     def _tx(conn, cur):
