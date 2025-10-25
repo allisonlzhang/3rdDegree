@@ -53,10 +53,13 @@ export default function Login() {
 
       // Debug logging
       console.log("Login response:", { hostName, partyTitle, memberId, partyId });
+      console.log("Full response object:", res);
       
       // Check if this is a first-time host (default party title indicates new host)
       const isFirstTime = partyTitle.includes("'s Party") && hostName === "Host";
       console.log("Is first time host:", isFirstTime);
+      console.log("Party title check:", partyTitle.includes("'s Party"));
+      console.log("Host name check:", hostName === "Host");
       
       if (isFirstTime) {
         console.log("Redirecting to setup page");
