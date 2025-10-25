@@ -6,17 +6,56 @@ router = APIRouter(prefix="/host", tags=["aliases"])
 
 @router.get("/me")
 def host_me(member_id: int | None = None, party_id: int | None = None):
-    if not member_id or not party_id:
-        raise HTTPException(400, "member_id and party_id required")
+    if not member_id:
+        raise HTTPException(400, "member_id required")
     
     def _tx(conn, cur):
+        # Check if member exists and is a host
+        cur.execute(
+            "SELECT id, name, role, party_id FROM member WHERE id=%s AND role='host'",
+            (member_id,)
+        )
+        member = cur.fetchone()
+        if not member:
+            raise HTTPException(404, "Host member not found")
+        
+        member_id_db, name, role, party_id_db = member
+        
+        # If no party_id provided or member has no party, return basic host info
+        if not party_id or not party_id_db:
+            return {
+                "ok": True,
+                "member": {
+                    "id": member_id_db,
+                    "name": name,
+                    "role": role,
+                    "party_id": party_id_db
+                }
+            }
+        
+        # If party_id provided, check RSVP status
         cur.execute(
             "SELECT status, approved, approved_by_child_id FROM rsvp WHERE party_id=%s AND member_id=%s",
             (party_id, member_id),
         )
-        if not cur.fetchone():
-            raise HTTPException(404, "not found")
-        return {"ok": True}
+        rsvp = cur.fetchone()
+        if not rsvp:
+            raise HTTPException(404, "RSVP not found")
+        
+        return {
+            "ok": True,
+            "member": {
+                "id": member_id_db,
+                "name": name,
+                "role": role,
+                "party_id": party_id_db
+            },
+            "rsvp": {
+                "status": rsvp[0],
+                "approved": rsvp[1],
+                "approved_by_child_id": rsvp[2]
+            }
+        }
     
     return run_tx(_tx)
 

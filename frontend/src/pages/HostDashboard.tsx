@@ -33,7 +33,17 @@ export default function HostDashboard() {
       <h2 style={{ marginTop: 0 }}>Your Parties</h2>
 
       {items.length === 0 ? (
-        <p>No parties yet.</p>
+        <div style={{ textAlign: "center", padding: "2rem 0" }}>
+          <h3 style={{ marginBottom: "1rem", color: "var(--text-secondary)" }}>
+            You don't have a party yet!
+          </h3>
+          <p style={{ marginBottom: "1.5rem", opacity: 0.8 }}>
+            Create your first party to start connecting people and building your network.
+          </p>
+          <Link to="/host/parties/new" className="btn" style={{ fontSize: "1.1rem", padding: "0.75rem 1.5rem" }}>
+            Create Your First Party
+          </Link>
+        </div>
       ) : (
         <ul style={{ paddingLeft: "1.25rem" }}>
           {items.map(p => (

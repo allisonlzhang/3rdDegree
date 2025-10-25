@@ -30,11 +30,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const { memberId, partyId } = getStoredIds();
-      if (!memberId || !partyId) {
+      if (!memberId) {
         setUser(null);
         return;
       }
-      const me = await api<User>(`/parties/${encodeURIComponent(partyId)}/me?member_id=${encodeURIComponent(memberId)}`);
+      // Use the host/me endpoint which works with or without party_id
+      const me = await api<User>(`/host/me?member_id=${encodeURIComponent(memberId)}${partyId ? `&party_id=${encodeURIComponent(partyId)}` : ""}`);
       setUser(me);
     } catch {
       setUser(null);

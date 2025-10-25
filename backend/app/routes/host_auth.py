@@ -87,67 +87,28 @@ def host_login(payload: dict = Body(...)):
                 "party": party,
             }
 
-        # 2) Not found → Auto-create flow
+        # 2) Not found → Create host account only (no party)
         name = (payload.get("name") or "Host").strip()
-        party_title = (payload.get("party_title") or f"{name}'s Party").strip()
-        location = (payload.get("location") or "TBD").strip()
-
-        starts_at_raw = payload.get("starts_at")
-        if starts_at_raw:
-            try:
-                starts_at = datetime.fromisoformat(starts_at_raw.replace("Z", "+00:00"))
-            except Exception:
-                raise HTTPException(400, "invalid starts_at (use ISO 8601)")
-        else:
-            # default to 7 days from now (UTC)
-            starts_at = datetime.now(timezone.utc) + timedelta(days=7)
-
-        # Create party
-        cur.execute(
-            """
-            INSERT INTO party (title, location, starts_at)
-            VALUES (%s, %s, %s)
-            RETURNING id, title, location, starts_at, started
-            """,
-            (party_title, location, starts_at),
-        )
-        party = dict(zip([d.name for d in cur.description], cur.fetchone()))
-        party_id = party["id"]
-
-        # Create host member (distance 0, has_invite_link TRUE)
         pwd_hash = hash_password(password)
+
+        # Create host member without a party (party_id will be NULL)
         cur.execute(
             """
             INSERT INTO member
                 (party_id, name, role, parent_id, distance, has_invite_link, phone, password_hash)
             VALUES
-                (%s, %s, 'host', NULL, 0, TRUE, %s, %s)
+                (NULL, %s, 'host', NULL, 0, TRUE, %s, %s)
             RETURNING id, party_id, name, role, parent_id, distance, has_invite_link, phone
             """,
-            (party_id, name, phone, pwd_hash),
+            (name, phone, pwd_hash),
         )
         host = dict(zip([d.name for d in cur.description], cur.fetchone()))
         host_id = host["id"]
 
-        # Host RSVP (pending)
-        cur.execute(
-            "INSERT INTO rsvp (party_id, member_id, status, approved) VALUES (%s, %s, 'pending', FALSE)",
-            (party_id, host_id),
-        )
-
-        # Host invite link
-        tok = new_token()
-        cur.execute(
-            "INSERT INTO invite (party_id, inviter_id, token) VALUES (%s, %s, %s) RETURNING token",
-            (party_id, host_id, tok),
-        )
-        token_val = cur.fetchone()[0]
-        host_invite = {"token": token_val, "url": f"/{party_id}/invite/{token_val}"}
-
         return {
-            "member": {"id": host_id, "party_id": party_id, "name": name, "role": "host", "phone": phone},
-            "party": party,
-            "host_invite": host_invite,
+            "member": {"id": host_id, "party_id": None, "name": name, "role": "host", "phone": phone},
+            "party": None,
+            "host_invite": None,
         }
 
     # Execute with per-request connection
