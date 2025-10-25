@@ -1,6 +1,6 @@
 # backend/app/routes/aliases.py
 from fastapi import APIRouter, HTTPException, Query
-from ..db.connection import pool
+from ..db.util import run_tx
 
 router = APIRouter(tags=["aliases"])
 
@@ -8,20 +8,22 @@ router = APIRouter(tags=["aliases"])
 def host_me(member_id: int | None = None, party_id: int | None = None):
     if not member_id or not party_id:
         raise HTTPException(400, "member_id and party_id required")
-    with pool.connection() as conn, conn.cursor() as cur:
+    
+    def _tx(conn, cur):
         cur.execute(
             "SELECT status, approved, approved_by_child_id FROM rsvp WHERE party_id=%s AND member_id=%s",
             (party_id, member_id),
         )
         if not cur.fetchone():
             raise HTTPException(404, "not found")
-    # simple 200 to satisfy the check; your UI should call /parties/{partyId}/me next
-    return {"ok": True}
+        return {"ok": True}
+    
+    return run_tx(_tx)
 
 @router.get("/host/parties")
 def host_parties(member_id: int = Query(...)):
     """Get all parties for a host member"""
-    with pool.connection() as conn, conn.cursor() as cur:
+    def _tx(conn, cur):
         cur.execute(
             """
             SELECT p.id, p.title, p.location, p.starts_at, p.started
@@ -42,6 +44,8 @@ def host_parties(member_id: int = Query(...)):
                 "started": row[4]
             })
         return parties
+    
+    return run_tx(_tx)
 
 # in main.py
 from .routes.aliases import router as aliases_router
