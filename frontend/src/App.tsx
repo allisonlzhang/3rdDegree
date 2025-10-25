@@ -19,6 +19,7 @@ import RequireAuth from "./components/RequireAuth";
 import GuestRsvp from "./pages/GuestRsvp";
 import PartyInfo from "./pages/PartyInfo";
 import HostSettings from "./pages/HostSettings";
+import HostSetup from "./pages/HostSetup";
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="party/:partyId/rsvp/me" element={<GuestRsvp />} />
           <Route path="party/:partyId/info" element={<PartyInfo />} />
           <Route path="host" element={<HostDashboard/>} />
+          <Route path="host/setup" element={<HostSetup />} />
 
 
           {import.meta.env.MODE !== "production" && (

@@ -33,6 +33,8 @@ export default function Login() {
       // treat any 2xx as success; store what we can
       const memberId = res?.member?.id || "";
       const partyId = (res?.member?.party_id ?? "") as string;
+      const hostName = res?.member?.name || "";
+      const partyTitle = res?.party?.title || "";
 
       if (memberId) localStorage.setItem("member_id", memberId);
       else localStorage.removeItem("member_id");
@@ -40,7 +42,14 @@ export default function Login() {
       if (partyId) localStorage.setItem("party_id", partyId);
       else localStorage.removeItem("party_id");
 
-      nav("/host"); // proceed even if body was minimal/empty
+      // Check if this is a first-time host (default party title indicates new host)
+      const isFirstTime = partyTitle.includes("'s Party") && hostName === "Host";
+      
+      if (isFirstTime) {
+        nav("/host/setup");
+      } else {
+        nav("/host");
+      }
     } catch (e: any) {
       setErr(e.message || "Login failed");
     } finally {
