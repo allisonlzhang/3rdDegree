@@ -46,7 +46,3 @@ def host_parties(member_id: int = Query(...)):
         return parties
     
     return run_tx(_tx)
-
-# in main.py
-from .routes.aliases import router as aliases_router
-app.include_router(aliases_router)
