@@ -35,15 +35,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      // If no party_id, use the host/me endpoint
-      if (!partyId) {
-        const me = await api<User>(`/host/me?member_id=${encodeURIComponent(memberId)}`);
-        setUser(me);
-      } else {
-        // If party_id exists, use the regular parties endpoint
-        const me = await api<User>(`/parties/${encodeURIComponent(partyId)}/me?member_id=${encodeURIComponent(memberId)}`);
-        setUser(me);
-      }
+      // Always use the host/me endpoint for hosts (it handles both cases)
+      const me = await api<User>(`/host/me?member_id=${encodeURIComponent(memberId)}${partyId ? `&party_id=${encodeURIComponent(partyId)}` : ""}`);
+      setUser(me);
     } catch {
       setUser(null);
     } finally {
