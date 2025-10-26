@@ -32,6 +32,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { memberId, partyId } = getStoredIds();
       if (!memberId) {
         setUser(null);
+        setLoading(false);
+        return;
+      }
+      
+      // Check if we're on the login page - if so, don't try to authenticate
+      if (window.location.pathname === '/login' || window.location.hash === '#/login') {
+        setUser(null);
+        setLoading(false);
         return;
       }
       
