@@ -29,16 +29,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function refresh() {
     setLoading(true);
     try {
+      // Don't try to authenticate on login page
+      if (window.location.pathname === '/login' || window.location.hash === '#/login') {
+        console.log("On login page, skipping auth");
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
       const { memberId, partyId } = getStoredIds();
+      console.log("Auth refresh - memberId:", memberId, "partyId:", partyId);
+      
       if (!memberId) {
+        console.log("No memberId, setting user to null");
         setUser(null);
         return;
       }
       
       // Always use the host/me endpoint for hosts (it handles both cases)
-      const me = await api<User>(`/host/me?member_id=${encodeURIComponent(memberId)}${partyId ? `&party_id=${encodeURIComponent(partyId)}` : ""}`);
+      const url = `/host/me?member_id=${encodeURIComponent(memberId)}${partyId ? `&party_id=${encodeURIComponent(partyId)}` : ""}`;
+      console.log("Making auth request to:", url);
+      const me = await api<User>(url);
+      console.log("Auth response:", me);
       setUser(me);
-    } catch {
+    } catch (error) {
+      console.log("Auth error:", error);
       setUser(null);
     } finally {
       setLoading(false);
