@@ -6,16 +6,7 @@ import { api } from "../lib/api";
 type LoginResp = {
   ok?: boolean;
   message?: string;
-  member?: { 
-    id?: string; 
-    party_id?: string | null;
-    name?: string;
-  };
-  party?: {
-    title?: string;
-    location?: string;
-    starts_at?: string;
-  };
+  member?: { id?: string; party_id?: string | null };
   _text?: string; // fallback if server replied text/plain
 };
 
@@ -42,8 +33,6 @@ export default function Login() {
       // treat any 2xx as success; store what we can
       const memberId = res?.member?.id || "";
       const partyId = (res?.member?.party_id ?? "") as string;
-      const hostName = res?.member?.name || "";
-      const partyTitle = res?.party?.title || "";
 
       if (memberId) localStorage.setItem("member_id", memberId);
       else localStorage.removeItem("member_id");
@@ -51,23 +40,7 @@ export default function Login() {
       if (partyId) localStorage.setItem("party_id", partyId);
       else localStorage.removeItem("party_id");
 
-      // Debug logging
-      console.log("Login response:", { hostName, partyTitle, memberId, partyId });
-      console.log("Full response object:", res);
-      
-      // Check if this is a first-time host (placeholder party and default name indicates new host)
-      const isFirstTime = partyTitle === "PLACEHOLDER_PARTY" && hostName === "Host";
-      console.log("Is first time host:", isFirstTime);
-      console.log("Placeholder party check:", partyTitle === "PLACEHOLDER_PARTY");
-      console.log("Host name check:", hostName === "Host");
-      
-      if (isFirstTime) {
-        console.log("Redirecting to setup page");
-        nav("/host/setup");
-      } else {
-        console.log("Redirecting to dashboard");
-        nav("/host");
-      }
+      nav("/host"); // proceed even if body was minimal/empty
     } catch (e: any) {
       setErr(e.message || "Login failed");
     } finally {

@@ -87,23 +87,35 @@ def host_login(payload: dict = Body(...)):
                 "party": party,
             }
 
-        # 2) Not found → Create host account with a placeholder party
+        # 2) Not found → Auto-create flow
         name = (payload.get("name") or "Host").strip()
-        pwd_hash = hash_password(password)
+        party_title = (payload.get("party_title") or f"{name}'s Party").strip()
+        location = (payload.get("location") or "TBD").strip()
 
-        # Create a placeholder party (will be hidden in frontend)
+        starts_at_raw = payload.get("starts_at")
+        if starts_at_raw:
+            try:
+                starts_at = datetime.fromisoformat(starts_at_raw.replace("Z", "+00:00"))
+            except Exception:
+                raise HTTPException(400, "invalid starts_at (use ISO 8601)")
+        else:
+            # default to 7 days from now (UTC)
+            starts_at = datetime.now(timezone.utc) + timedelta(days=7)
+
+        # Create party
         cur.execute(
             """
-            INSERT INTO party (title, location, starts_at, started)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO party (title, location, starts_at)
+            VALUES (%s, %s, %s)
             RETURNING id, title, location, starts_at, started
             """,
-            ("PLACEHOLDER_PARTY", "TBD", datetime.now(timezone.utc) + timedelta(days=365), True),
+            (party_title, location, starts_at),
         )
         party = dict(zip([d.name for d in cur.description], cur.fetchone()))
         party_id = party["id"]
 
-        # Create host member with placeholder party
+        # Create host member (distance 0, has_invite_link TRUE)
+        pwd_hash = hash_password(password)
         cur.execute(
             """
             INSERT INTO member
@@ -123,11 +135,19 @@ def host_login(payload: dict = Body(...)):
             (party_id, host_id),
         )
 
-        # Return response with placeholder party (frontend will hide it)
+        # Host invite link
+        tok = new_token()
+        cur.execute(
+            "INSERT INTO invite (party_id, inviter_id, token) VALUES (%s, %s, %s) RETURNING token",
+            (party_id, host_id, tok),
+        )
+        token_val = cur.fetchone()[0]
+        host_invite = {"token": token_val, "url": f"/{party_id}/invite/{token_val}"}
+
         return {
             "member": {"id": host_id, "party_id": party_id, "name": name, "role": "host", "phone": phone},
             "party": party,
-            "host_invite": None,
+            "host_invite": host_invite,
         }
 
     # Execute with per-request connection

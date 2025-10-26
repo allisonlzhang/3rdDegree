@@ -30,21 +30,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const { memberId, partyId } = getStoredIds();
-      if (!memberId) {
+      if (!memberId || !partyId) {
         setUser(null);
-        setLoading(false);
         return;
       }
-      
-      // Check if we're on the login page - if so, don't try to authenticate
-      if (window.location.pathname === '/login' || window.location.hash === '#/login') {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-      
-      // Always use the host/me endpoint for hosts (it handles both cases)
-      const me = await api<User>(`/host/me?member_id=${encodeURIComponent(memberId)}${partyId ? `&party_id=${encodeURIComponent(partyId)}` : ""}`);
+      const me = await api<User>(`/parties/${encodeURIComponent(partyId)}/me?member_id=${encodeURIComponent(memberId)}`);
       setUser(me);
     } catch {
       setUser(null);

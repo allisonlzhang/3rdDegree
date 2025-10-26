@@ -96,25 +96,3 @@ def host_parties(member_id: int = Query(...)):
         return parties
     
     return run_tx(_tx)
-
-@router.post("/update-name")
-def update_host_name(payload: dict):
-    """Update host's name"""
-    member_id = payload.get("member_id")
-    name = payload.get("name")
-    
-    if not member_id or not name:
-        raise HTTPException(400, "member_id and name are required")
-    
-    def _tx(conn, cur):
-        # Update the member's name
-        cur.execute(
-            "UPDATE member SET name = %s WHERE id = %s AND role = 'host'",
-            (name.strip(), member_id)
-        )
-        if cur.rowcount == 0:
-            raise HTTPException(404, "Host member not found")
-        
-        return {"ok": True, "message": "Name updated successfully"}
-    
-    return run_tx(_tx)
