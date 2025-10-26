@@ -18,7 +18,9 @@ export default function HostDashboard() {
           return;
         }
         const list = await api<PartyListItem[]>(`/host/parties?member_id=${encodeURIComponent(memberId)}`);
-        setItems(list);
+        // Filter out placeholder parties
+        const realParties = list.filter(party => party.title !== "PLACEHOLDER_PARTY");
+        setItems(realParties);
       } catch (e: any) {
         setErr(e.message || "Failed to load parties");
       }

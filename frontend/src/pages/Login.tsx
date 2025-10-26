@@ -55,10 +55,10 @@ export default function Login() {
       console.log("Login response:", { hostName, partyTitle, memberId, partyId });
       console.log("Full response object:", res);
       
-      // Check if this is a first-time host (no party and default name indicates new host)
-      const isFirstTime = !partyId && hostName === "Host";
+      // Check if this is a first-time host (placeholder party and default name indicates new host)
+      const isFirstTime = partyTitle === "PLACEHOLDER_PARTY" && hostName === "Host";
       console.log("Is first time host:", isFirstTime);
-      console.log("No party check:", !partyId);
+      console.log("Placeholder party check:", partyTitle === "PLACEHOLDER_PARTY");
       console.log("Host name check:", hostName === "Host");
       
       if (isFirstTime) {

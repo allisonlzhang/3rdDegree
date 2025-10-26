@@ -87,28 +87,46 @@ def host_login(payload: dict = Body(...)):
                 "party": party,
             }
 
-        # 2) Not found → Create host account only (no automatic party)
+        # 2) Not found → Create host account with a placeholder party
         name = (payload.get("name") or "Host").strip()
         pwd_hash = hash_password(password)
 
-        # Create host member without a party (party_id will be NULL)
+        # Create a placeholder party (will be hidden in frontend)
+        cur.execute(
+            """
+            INSERT INTO party (title, location, starts_at, started)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id, title, location, starts_at, started
+            """,
+            ("PLACEHOLDER_PARTY", "TBD", datetime.now(timezone.utc) + timedelta(days=365), True),
+        )
+        party = dict(zip([d.name for d in cur.description], cur.fetchone()))
+        party_id = party["id"]
+
+        # Create host member with placeholder party
         cur.execute(
             """
             INSERT INTO member
                 (party_id, name, role, parent_id, distance, has_invite_link, phone, password_hash)
             VALUES
-                (NULL, %s, 'host', NULL, 0, TRUE, %s, %s)
+                (%s, %s, 'host', NULL, 0, TRUE, %s, %s)
             RETURNING id, party_id, name, role, parent_id, distance, has_invite_link, phone
             """,
-            (name, phone, pwd_hash),
+            (party_id, name, phone, pwd_hash),
         )
         host = dict(zip([d.name for d in cur.description], cur.fetchone()))
         host_id = host["id"]
 
-        # Return response without party data (but with expected structure)
+        # Host RSVP (pending)
+        cur.execute(
+            "INSERT INTO rsvp (party_id, member_id, status, approved) VALUES (%s, %s, 'pending', FALSE)",
+            (party_id, host_id),
+        )
+
+        # Return response with placeholder party (frontend will hide it)
         return {
-            "member": {"id": host_id, "party_id": None, "name": name, "role": "host", "phone": phone},
-            "party": None,
+            "member": {"id": host_id, "party_id": party_id, "name": name, "role": "host", "phone": phone},
+            "party": party,
             "host_invite": None,
         }
 

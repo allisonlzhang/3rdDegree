@@ -5,15 +5,21 @@ from ..db.util import run_tx
 router = APIRouter(prefix="/host", tags=["aliases"])
 
 @router.get("/me")
-def host_me(member_id: int | None = None, party_id: int | None = None):
+def host_me(member_id: str | None = None, party_id: str | None = None):
     if not member_id:
         raise HTTPException(400, "member_id required")
     
     def _tx(conn, cur):
+        # Convert string to int for database query
+        try:
+            member_id_int = int(member_id)
+        except ValueError:
+            raise HTTPException(400, "Invalid member_id")
+        
         # Check if member exists and is a host
         cur.execute(
             "SELECT id, name, role, party_id FROM member WHERE id=%s AND role='host'",
-            (member_id,)
+            (member_id_int,)
         )
         member = cur.fetchone()
         if not member:
@@ -34,9 +40,14 @@ def host_me(member_id: int | None = None, party_id: int | None = None):
             }
         
         # If party_id provided, check RSVP status
+        try:
+            party_id_int = int(party_id)
+        except (ValueError, TypeError):
+            raise HTTPException(400, "Invalid party_id")
+            
         cur.execute(
             "SELECT status, approved, approved_by_child_id FROM rsvp WHERE party_id=%s AND member_id=%s",
-            (party_id, member_id),
+            (party_id_int, member_id_int),
         )
         rsvp = cur.fetchone()
         if not rsvp:
