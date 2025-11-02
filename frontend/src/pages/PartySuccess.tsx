@@ -1,18 +1,28 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 const PartySuccess = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  
+  // Get party data from navigation state
+  const party = location.state?.party
+  const inviteUrl = location.state?.inviteUrl
 
   const handleBackToHost = () => {
     navigate('/host')
   }
 
-  // TODO: Generate actual invite link
-  const inviteLink = "https://yourdomain.com/party/123/rsvp"
-
   const copyInviteLink = () => {
-    navigator.clipboard.writeText(inviteLink)
-    // TODO: Show success message
+    if (inviteUrl) {
+      navigator.clipboard.writeText(inviteUrl)
+      // You could add a toast notification here
+    }
+  }
+
+  // If no party data, redirect to host dashboard
+  if (!party || !inviteUrl) {
+    navigate('/host')
+    return null
   }
 
   return (
@@ -20,11 +30,11 @@ const PartySuccess = () => {
       <h1>🎉 Party Created Successfully!</h1>
       <div className="success-content">
         <h2>Invite Your Guests</h2>
-        <p>Share this link with your guests to let them RSVP:</p>
+        <p>Share this link with your guests to let them RSVP for "{party.name}":</p>
         <div className="invite-link-container">
           <input
             type="text"
-            value={inviteLink}
+            value={inviteUrl}
             readOnly
             className="invite-link-input"
           />

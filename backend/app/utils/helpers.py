@@ -7,6 +7,11 @@ def generate_invite_code(length: int = 8) -> str:
     characters = string.ascii_uppercase + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
 
+def generate_rsvp_invitation_code(length: int = 12) -> str:
+    """Generate a unique invitation code for RSVP invitations."""
+    characters = string.ascii_uppercase + string.digits
+    return ''.join(random.choice(characters) for _ in range(length))
+
 def format_phone_number(phone: str) -> str:
     """Format phone number to 10 digits."""
     # Remove all non-digit characters

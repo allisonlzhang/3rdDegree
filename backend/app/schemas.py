@@ -55,12 +55,35 @@ class RSVPBase(BaseModel):
     is_attending: bool
 
 class RSVPCreate(RSVPBase):
-    pass
+    invited_by_code: Optional[str] = Field(None, description="Invitation code from the person who invited them")
 
 class RSVPResponse(RSVPBase):
     id: int
     party_id: int
+    degree: int
+    invited_by_rsvp_id: Optional[int]
+    invitation_code: Optional[str]
+    is_confirmed: bool
+    has_sent_invitation: bool
     created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class RSVPInviteRequest(BaseModel):
+    guest_name: str = Field(..., min_length=1, max_length=100)
+    guest_phone: str = Field(..., min_length=10, max_length=10)
+    is_attending: bool = True  # Must be True to send invitations
+
+class RSVPInviteResponse(BaseModel):
+    invitation_code: str
+    invitation_url: str
+    message: str
+
+class GuestRSVPResponse(RSVPResponse):
+    """RSVP response with party info and first downstream acceptance for guest dashboard."""
+    party: PartyResponse
+    first_downstream_acceptance: Optional[dict] = None  # {name: str, phone: str} of first person who accepted their invite
     
     class Config:
         from_attributes = True
