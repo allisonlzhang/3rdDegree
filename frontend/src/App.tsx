@@ -46,9 +46,12 @@ function AppContent() {
 }
 
 function App() {
+  // Use the base URL from Vite config (matches GitHub Pages base path)
+  const basePath = import.meta.env.BASE_URL || '/'
+  
   return (
     <AuthProvider>
-      <Router>
+      <Router basename={basePath}>
         <AppContent />
       </Router>
     </AuthProvider>
