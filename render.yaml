@@ -3,7 +3,7 @@ services:
     name: thirddegree-api
     runtime: python
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && PYTHONPATH=. gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 4 -b 0.0.0.0:$PORT
+    startCommand: cd backend && PYTHONPATH=. alembic upgrade head && gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 4 -b 0.0.0.0:$PORT
     envVars:
       - key: DATABASE_URL
         sync: false

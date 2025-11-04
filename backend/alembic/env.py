@@ -32,6 +32,11 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+# Use DATABASE_URL from environment if available, otherwise use config
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    config.set_main_option("sqlalchemy.url", database_url)
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
