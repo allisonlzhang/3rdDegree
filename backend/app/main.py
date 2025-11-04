@@ -12,7 +12,9 @@ app = FastAPI(
 # CORS middleware for frontend communication
 # In production, set ALLOWED_ORIGINS environment variable to your GitHub Pages domain
 # Example: ALLOWED_ORIGINS=https://yourusername.github.io,https://yourusername.github.io/thirddegree
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "*")
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+print(f"CORS allowed_origins: {allowed_origins}")  # Debug logging
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
