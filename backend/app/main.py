@@ -15,12 +15,16 @@ app = FastAPI(
 allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "*")
 allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
 print(f"CORS allowed_origins: {allowed_origins}")  # Debug logging
+
+# Configure CORS middleware - must be added before other middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 @app.get("/")
@@ -30,6 +34,7 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
 
 # Include routers
 from app.routes import auth, parties, rsvp
