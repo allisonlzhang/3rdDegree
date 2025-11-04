@@ -1,5 +1,14 @@
 // API base URL - uses environment variable in production, localhost in development
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+// Ensure it ends with /api
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+  // If URL doesn't end with /api, append it
+  if (!envUrl.endsWith('/api')) {
+    return envUrl.endsWith('/') ? `${envUrl}api` : `${envUrl}/api`;
+  }
+  return envUrl;
+};
+const API_BASE_URL = getApiBaseUrl();
 
 // Types
 export interface Host {
